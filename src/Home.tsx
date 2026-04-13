@@ -19,23 +19,7 @@ import "./Mapweather.css";
 import useGeolocation from "./hooks/useGeolocation";
 import axios from "axios";
 import { wmoCodeToDescription } from "./types/weather.types";
-
-/**
- * SOS payload shape — Phase 2 will send this via EmailJS.
- * For Phase 1 it is logged to the console only.
- */
-interface SOSPayload {
-  latitude: number;
-  longitude: number;
-  weather: {
-    temperature: number;
-    windspeed: number;
-    weathercode: number;
-    description: string;
-  };
-  message: string;
-  timestamp: string;
-}
+import { sendSOS, SOSPayload } from "./api/sosService";
 
 const Home: React.FC = () => {
   const [isSOSClicked, setIsSOSClicked] = useState<boolean>(false);
@@ -51,17 +35,11 @@ const Home: React.FC = () => {
     lon,
     loading: geoLoading,
     error: geoError,
-    errorType: geoErrorType,
     accuracy,
     accuracyStatus,
   } = useGeolocation();
   const userPosition: [number, number] = [lat, lon];
 
-  /**
-   * handleSOS
-   * Phase 1: obtain location, fetch fresh weather, build and log the SOS payload.
-   * Phase 2 hook: the commented block below is where EmailJS will be called.
-   */
   const handleSOS = async () => {
     if (sosLoading) return;
 
@@ -81,47 +59,32 @@ const Home: React.FC = () => {
           `&current_weather=true&timezone=auto`
       );
       const current = response.data.current_weather;
+      const weatherDescription = wmoCodeToDescription(current.weathercode);
 
       // 2) Build the SOS payload
       const payload: SOSPayload = {
         latitude: lat,
         longitude: lon,
-        weather: {
-          temperature: current.temperature,
-          windspeed: current.windspeed,
-          weathercode: current.weathercode,
-          description: wmoCodeToDescription(current.weathercode),
-        },
-        message: "Emergency SOS triggered",
+        weather: `${weatherDescription}, ${current.temperature}°C, wind ${current.windspeed} km/h`,
+        sos_message: "Emergency SOS triggered",
         timestamp: new Date().toISOString(),
       };
+      // 3) Send SOS alert email via EmailJS service layer
+      const result = await sendSOS(payload);
+      if (!result.success) {
+        throw new Error(result.message);
+      }
 
-      // 3) Phase 1 — log to console
-      console.log("🚨 SOS PAYLOAD:", payload);
-
-      /*
-       * ── Phase 2 hook (EmailJS) ────────────────────────────────────────────
-       * import emailjs from "@emailjs/browser";
-       * await emailjs.send(
-       *   process.env.REACT_APP_EMAILJS_SERVICE_ID!,
-       *   process.env.REACT_APP_EMAILJS_TEMPLATE_ID!,
-       *   {
-       *     latitude:    String(payload.latitude),
-       *     longitude:   String(payload.longitude),
-       *     weather:     `${payload.weather.description}, ${payload.weather.temperature}°C, wind ${payload.weather.windspeed} km/h`,
-       *     sos_message: payload.message,
-       *     timestamp:   payload.timestamp,
-       *   },
-       *   process.env.REACT_APP_EMAILJS_PUBLIC_KEY!
-       * );
-       * ──────────────────────────────────────────────────────────────────────
-       */
+      console.log("🚨 SOS EMAIL SENT:", payload);
 
       setSosSuccess(true);
-    } catch (err) {
-      console.error("SOS flow error:", err);
-      setSosError("SOS triggered but weather data could not be fetched.");
-      // Still mark SOS as clicked — location was captured
+    } catch (err: unknown) {
+      console.error("SOS email flow error:", err);
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to send SOS email. Please try again.";
+      setSosError(message);
     } finally {
       setSosLoading(false);
     }
@@ -188,8 +151,8 @@ const Home: React.FC = () => {
       )}
       {sosSuccess && (
         <Alert severity="success" sx={{ mb: 2 }}>
-          🚨 SOS payload logged — coordinates: {lat.toFixed(5)}°N,{" "}
-          {lon.toFixed(5)}°E. (Phase 2: email will be sent here.)
+          🚨 SOS email sent — coordinates: {lat.toFixed(5)}°N,{" "}
+          {lon.toFixed(5)}°E.
         </Alert>
       )}
       {sosError && (
