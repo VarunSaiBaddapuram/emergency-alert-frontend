@@ -12,50 +12,83 @@ interface WeatherForecastProps {
 }
 
 const WeatherForecast: React.FC<WeatherForecastProps> = ({ coordinates }) => {
-  const [loaded, setLoaded] = useState<boolean>(false);
   const [forecast, setForecast] = useState<ForecastRow[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoaded(false);
-  }, [coordinates]);
-
-  const handleResponse = (response: any) => {
-    setForecast(response.data.daily);
-    setLoaded(true);
-  };
-
-  const load = () => {
-    const apiKey = process.env.REACT_APP_WEATHER_API_KEY;
+    // Use primitive deps to avoid stale object reference triggering extra runs
     const { lat, lon } = coordinates;
-    const apiUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+    if (!lat || !lon) return;
 
-    axios.get(apiUrl).then(handleResponse).catch(err => {
-        console.error("Forecast error:", err);
-    });
-  };
+    setLoading(true);
+    setError(null);
+    setForecast(null);
 
-  if (loaded && forecast) {
+    const url =
+      `https://api.open-meteo.com/v1/forecast` +
+      `?latitude=${lat}&longitude=${lon}` +
+      `&daily=temperature_2m_max,temperature_2m_min,weathercode` +
+      `&timezone=auto&forecast_days=7`;
+
+    axios
+      .get(url)
+      .then((response) => {
+        const daily = response.data.daily;
+
+        // Transform from Open-Meteo columnar format → ForecastRow[]
+        const rows: ForecastRow[] = (daily.time as string[]).map(
+          (time: string, i: number) => ({
+            // Convert ISO date string → Unix seconds so WeatherForecastDay works unchanged
+            dt: new Date(time).getTime() / 1000,
+            temp: {
+              max: daily.temperature_2m_max[i],
+              min: daily.temperature_2m_min[i],
+            },
+            // WMO code as string; WeatherIcon maps this to an animated icon
+            weather: [{ icon: String(daily.weathercode[i]) }],
+          })
+        );
+
+        setForecast(rows);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Forecast fetch error:", err);
+        setError("Could not load forecast.");
+        setLoading(false);
+      });
+    // Depend on primitive values, not the object reference
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coordinates.lat, coordinates.lon]);
+
+  if (loading) {
     return (
-      <div className="WeatherForecast">
-        <div className="row">
-          {forecast.map((dailyForecast, index) => {
-            if (index < 5) {
-              return (
-                <div className="col" key={index}>
-                  <WeatherForecastDay data={dailyForecast} />
-                </div>
-              );
-            } else {
-              return null;
-            }
-          })}
-        </div>
+      <div className="p-2 text-center text-muted small">
+        Loading forecast…
       </div>
     );
-  } else {
-    load();
-    return null;
   }
-}
+
+  if (error) {
+    return (
+      <div className="p-2 text-center text-danger small">{error}</div>
+    );
+  }
+
+  if (!forecast) return null;
+
+  return (
+    <div className="WeatherForecast">
+      <div className="row">
+        {forecast.slice(0, 5).map((dailyForecast, index) => (
+          <div className="col" key={index}>
+            <WeatherForecastDay data={dailyForecast} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default WeatherForecast;

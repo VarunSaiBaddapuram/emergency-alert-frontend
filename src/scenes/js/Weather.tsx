@@ -1,92 +1,115 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import WeatherData from "./WeatherData";
 import WeatherForecast from "./WeatherForecast";
 import axios from "axios";
-import { WeatherInfo } from "../../types/weather.types";
+import { WeatherInfo, wmoCodeToDescription } from "../../types/weather.types";
 import "../css/Weather.css";
 
 interface WeatherProps {
-  defaultCity: string;
+  lat: number;
+  lon: number;
 }
 
-interface WeatherDataState extends Partial<WeatherInfo> {
+interface WeatherState {
   ready: boolean;
-  coordinates?: {
-    lat: number;
-    lon: number;
-  };
+  loading: boolean;
+  error: string | null;
+  data?: WeatherInfo;
+  coordinates?: { lat: number; lon: number };
 }
 
-const Weather: React.FC<WeatherProps> = ({ defaultCity }) => {
-  const [weatherData, setWeatherData] = useState<WeatherDataState>({ ready: false });
-  const [city, setCity] = useState<string>(defaultCity);
+const Weather: React.FC<WeatherProps> = ({ lat, lon }) => {
+  const [state, setState] = useState<WeatherState>({
+    ready: false,
+    loading: true,
+    error: null,
+  });
 
-  const handleResponse = (response: any) => {
-    setWeatherData({
-      ready: true,
-      coordinates: response.data.coord,
-      temperature: response.data.main.temp,
-      humidity: response.data.main.humidity,
-      date: new Date(response.data.dt * 1000),
-      description: response.data.weather[0].description,
-      icon: response.data.weather[0].icon,
-      city: response.data.name,
-      wind: response.data.wind.speed,
-    });
-  };
+  useEffect(() => {
+    // Guard: don't fetch if coordinates aren't valid yet
+    if (!lat || !lon) return;
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    search();
-  };
+    setState({ ready: false, loading: true, error: null });
 
-  const handleCityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setCity(event.target.value);
-  };
+    const fetchWeather = async () => {
+      try {
+        const url =
+          `https://api.open-meteo.com/v1/forecast` +
+          `?latitude=${lat}&longitude=${lon}` +
+          `&current_weather=true` +
+          `&hourly=relativehumidity_2m,temperature_2m` +
+          `&timezone=auto&forecast_days=1`;
 
-  const search = () => {
-    const apiKey = process.env.REACT_APP_WEATHER_API_KEY;
-    const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
-    axios.get(apiUrl)
-      .then(handleResponse)
-      .catch(err => {
-        console.error("Weather search error:", err);
-      });
-  };
+        const response = await axios.get(url);
+        const current = response.data.current_weather;
 
-  if (weatherData.ready && weatherData.city) {
+        // Find the hourly index matching the current weather timestamp
+        const hourlyTimes: string[] = response.data.hourly.time;
+        const currentHourPrefix = current.time.slice(0, 13); // "2024-01-01T12"
+        const hourIndex = hourlyTimes.findIndex((t: string) =>
+          t.startsWith(currentHourPrefix)
+        );
+        const humidity =
+          hourIndex >= 0
+            ? response.data.hourly.relativehumidity_2m[hourIndex]
+            : 0;
+
+        setState({
+          ready: true,
+          loading: false,
+          error: null,
+          data: {
+            // Show coordinates as "city" since Open-Meteo is coordinate-based
+            city: `${lat.toFixed(3)}°N, ${lon.toFixed(3)}°E`,
+            temperature: current.temperature,
+            humidity,
+            date: new Date(current.time),
+            description: wmoCodeToDescription(current.weathercode),
+            // Pass WMO code as string — WeatherIcon handles both OWM & WMO codes
+            icon: String(current.weathercode),
+            wind: current.windspeed,
+          },
+          coordinates: { lat, lon },
+        });
+      } catch (err) {
+        console.error("Weather fetch error:", err);
+        setState({
+          ready: false,
+          loading: false,
+          error: "Failed to load weather data. Please try again.",
+        });
+      }
+    };
+
+    fetchWeather();
+  }, [lat, lon]); // Only re-fetch when coordinates actually change
+
+  if (state.loading) {
+    return (
+      <div className="p-3 text-center text-muted">
+        Loading weather data…
+      </div>
+    );
+  }
+
+  if (state.error) {
+    return (
+      <div className="p-3 text-center text-danger">{state.error}</div>
+    );
+  }
+
+  if (state.ready && state.data) {
     return (
       <div className="Weather">
-        <form onSubmit={handleSubmit}>
-          <div className="row">
-            <div className="col-9">
-              <input
-                type="search"
-                placeholder="Enter a city.."
-                className="form-control"
-                autoFocus={true}
-                onChange={handleCityChange}
-              />
-            </div>
-            <div className="col-3">
-              <input
-                type="submit"
-                value="Search"
-                className="btn btn-primary w-100"
-              />
-            </div>
-          </div>
-        </form>
-        <WeatherData data={weatherData as WeatherInfo} />
-        {weatherData.coordinates && (
-          <WeatherForecast coordinates={weatherData.coordinates} />
+        <WeatherData data={state.data} />
+        {state.coordinates && (
+          <WeatherForecast coordinates={state.coordinates} />
         )}
       </div>
     );
-  } else {
-    search();
-    return <div className="p-3 text-center">Loading weather data...</div>;
   }
-}
+
+  return null;
+};
 
 export default Weather;
