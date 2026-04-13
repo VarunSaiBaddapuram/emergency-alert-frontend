@@ -1,70 +1,63 @@
-# Getting Started with Create React App
+# 🛰️ Alert Emergency Response - Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A sophisticated React-based dashboard designed for high-stakes emergency coordination, providing responders with real-time situational awareness and rapid-action tools.
 
-## Available Scripts
+## ✨ Key Features
 
-In the project directory, you can run:
+- **Interactive SOS Trigger**: One-click emergency activation capturing precise geolocation, real-time weather, and custom messages.
+- **Dynamic Situational Awareness**: Integrated weather widgets and location indicators for enhanced decision-making.
+- **Relief Center Management**: Role-based dashboards for relief center in-charges to manage capacity, admissions, and supply requests.
+- **Collection Center Logistics**: Specialized views for collection center leads to track deliveries and stock.
+- **Responsive Management UI**: Built with Material UI (MUI) for a professional, consistent, and mission-ready interface.
+- **Real-time Notifications**: Instant feedback via React Toastify for critical actions and updates.
 
-### `npm start`
+## 🛠️ Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Framework**: React 18 with TypeScript
+- **State Management**: Redux Toolkit (RTK)
+- **UI Framework**: Material UI (MUI)
+- **Navigation**: React Router 6
+- **HTTP Client**: Axios with centralized Instance/Interceptor management
+- **Maps**: Leaflet (Data Grid visualization and location tracking)
+- **Feedback**: React Toastify & Custom Spinners
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## ⚙️ Environment Configuration
 
-### `npm test`
+Create a `.env` file in the root directory:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```env
+# Backend API Location
+REACT_APP_API_BASE_URL=http://localhost:5000
 
-### `npm run build`
+# Weather Integration (OpenWeather/Open-Meteo as applicable)
+REACT_APP_WEATHER_API_KEY=your_key_here
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# Agency Configuration
+REACT_APP_AGENCY_KEY=agency/register?key=india
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🛠️ Project Structure
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- `src/api`: Centralized API services (SOS, Auth, Relief, Collection).
+- `src/scenes`: Page-level components organized by functional area (Main, Admin, Relief, Collection).
+- `src/store`: Redux slices and global state management.
+- `src/types`: Centralized TypeScript interfaces for domain models and API responses.
+- `src/hooks`: Custom React hooks for geolocation and state synchronization.
 
-### `npm run eject`
+## 🚀 Installation & Getting Started
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+# Install dependencies
+npm install
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# Start development server
+npm start
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 🔒 Security & Onboarding
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- **Agency Key Protection**: Registration is protected by a mandatory Agency Key, ensuring only authorized responders can create accounts.
+- **JWT Authorization**: Automatic token attachment via Axios interceptors for all protected API calls.
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+*Empowering emergency responders with reliable, real-time technology.*
