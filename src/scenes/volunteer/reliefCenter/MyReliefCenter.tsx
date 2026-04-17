@@ -21,6 +21,7 @@ import uuid from "react-uuid";
 import { useAppSelector } from "../../../store/hooks";
 import { reliefApi } from "../../../api/reliefApi";
 import { ReliefCenter, ReliefSupplyRequest } from "../../../types/relief.types";
+import { socket } from "../../../store/socket";
 
 interface ReliefForm {
   CenterName: string;
@@ -64,6 +65,7 @@ const MyReliefCenter: React.FC = () => {
   const [updateNumber, setUpdateNumber] = useState(0);
   const [item, setItem] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [pageSize, setPageSize] = useState<number>(5);
 
   const { user } = useAppSelector((state) => state.auth);
   const userId = user?._id;
@@ -151,6 +153,16 @@ const MyReliefCenter: React.FC = () => {
     if (userId) {
       setRow();
       loadData();
+      
+      const refreshAll = () => {
+        setRow();
+        loadData();
+      };
+      
+      socket.on("CENTER_DATA_UPDATED", refreshAll);
+      return () => {
+        socket.off("CENTER_DATA_UPDATED", refreshAll);
+      };
     }
   }, [userId]);
 
@@ -252,13 +264,15 @@ const MyReliefCenter: React.FC = () => {
           </Paper>
 
           <Typography variant="h6" fontWeight="bold" gutterBottom>Supply Requests History</Typography>
-          <Paper elevation={2} sx={{ height: 450, borderRadius: 2 }}>
+          <Paper elevation={2} sx={{ width: '100%', borderRadius: 2 }}>
             <DataGrid
+              autoHeight
               rows={rows}
               columns={columns}
-              pageSize={5}
-              rowsPerPageOptions={[5]}
-              getRowId={() => uuid()}
+              pageSize={pageSize}
+              onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+              rowsPerPageOptions={[5, 10, 15, 20]}
+              getRowId={(row) => row._id || uuid()}
             />
           </Paper>
         </>

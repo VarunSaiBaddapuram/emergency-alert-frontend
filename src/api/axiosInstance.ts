@@ -1,5 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from "axios";
 import { ApiError } from "../types/api.types";
+import { toast } from "react-toastify";
 
 const axiosInstance = axios.create({
   baseURL: process.env.REACT_APP_API_BASE_URL || "http://localhost:5000",
@@ -39,9 +40,13 @@ axiosInstance.interceptors.response.use(
       }
     }
     
+    if (!error.response && error.message === "Network Error") {
+      toast.error("Network Error: Please check your internet connection.");
+    }
+    
     // Standardize error format { message, errors }
     const errorData: ApiError = {
-      message: error.response?.data?.message || "An unexpected error occurred",
+      message: error.response?.data?.message || error.message || "An unexpected error occurred",
       errors: error.response?.data?.errors || undefined,
       status: error.response?.status
     };

@@ -21,6 +21,7 @@ import { collectionApi } from "../../../api/collectionApi";
 import { reliefApi } from "../../../api/reliefApi";
 import { CollectionCenter } from "../../../types/collection.types";
 import { ReliefSupplyRequest } from "../../../types/relief.types";
+import { socket } from "../../../store/socket";
 
 interface CollectionForm {
   CenterName: string;
@@ -63,6 +64,7 @@ const MyCollectionCenter: React.FC = () => {
     latitude: "",
     longitude: "",
   });
+  const [pageSize, setPageSize] = useState<number>(5);
 
   const handleClose = () => setOpen(false);
 
@@ -145,6 +147,19 @@ const MyCollectionCenter: React.FC = () => {
   useEffect(() => {
     refreshRows();
     refreshDispatchRows();
+    
+    const refreshAll = () => {
+      refreshRows();
+      refreshDispatchRows();
+      if (userId) {
+        loadData();
+      }
+    };
+    
+    socket.on("CENTER_DATA_UPDATED", refreshAll);
+    return () => {
+      socket.off("CENTER_DATA_UPDATED", refreshAll);
+    };
   }, [userId]);
 
   const acceptDelivery = async (rowData: ReliefSupplyRequest) => {
@@ -286,14 +301,15 @@ const MyCollectionCenter: React.FC = () => {
             </Badge>
           </Stack>
 
-          <Paper elevation={2} sx={{ height: 500, borderRadius: 2 }}>
+          <Paper elevation={2} sx={{ width: '100%', borderRadius: 2 }}>
             <DataGrid
               autoHeight
               rows={showAccepted ? disRows : rows}
               columns={showAccepted ? dispatchColumns : columns}
-              pageSize={5}
-              rowsPerPageOptions={[5]}
-              getRowId={() => uuid()}
+              pageSize={pageSize}
+              onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+              rowsPerPageOptions={[5, 10, 15, 20]}
+              getRowId={(row) => row._id || uuid()}
             />
           </Paper>
         </>

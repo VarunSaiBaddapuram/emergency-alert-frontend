@@ -6,6 +6,7 @@ import Maps from "../reliefCenter/Maps";
 import { CollectionCenter as CollectionCenterType } from "../../../types/collection.types";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PhoneIcon from "@mui/icons-material/Phone";
+import { socket } from "../../../store/socket";
 
 const CollectionCenter: React.FC = () => {
   const [centers, setCenters] = useState<CollectionCenterType[]>([]);
@@ -23,6 +24,11 @@ const CollectionCenter: React.FC = () => {
       }
     };
     fetchCenters();
+    
+    socket.on("CENTER_DATA_UPDATED", fetchCenters);
+    return () => {
+      socket.off("CENTER_DATA_UPDATED", fetchCenters);
+    };
   }, []);
 
   return (

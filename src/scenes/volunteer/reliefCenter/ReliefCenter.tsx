@@ -17,6 +17,7 @@ import useSound from "use-sound";
 import Maps from "./Maps";
 import { reliefApi } from "../../../api/reliefApi";
 import { ReliefCenter as ReliefCenterType } from "../../../types/relief.types";
+import { socket } from "../../../store/socket";
 
 const StyledCard: React.FC<{ children: React.ReactNode; sx?: any }> = ({ children, sx }) => (
   <Card
@@ -69,6 +70,11 @@ const ReliefCenter: React.FC = () => {
 
   useEffect(() => {
     fetchReliefCenters();
+    
+    socket.on("CENTER_DATA_UPDATED", fetchReliefCenters);
+    return () => {
+      socket.off("CENTER_DATA_UPDATED", fetchReliefCenters);
+    };
   }, []);
 
   useEffect(() => {
