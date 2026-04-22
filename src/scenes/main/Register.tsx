@@ -130,6 +130,7 @@ const Register: React.FC = () => {
               >
                 <MenuItem value="reliefCenter">Relief Center</MenuItem>
                 <MenuItem value="collectionCenter">Collection Center</MenuItem>
+                <MenuItem value="admin">Admin</MenuItem>
               </TextField>
             </Grid>
             <Grid item xs={12}>

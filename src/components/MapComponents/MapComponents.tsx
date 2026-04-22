@@ -9,7 +9,6 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import Chatbot from "./Chatbot";
 import { Box } from "@mui/material";
 
 const icon = L.icon({
@@ -73,14 +72,14 @@ const MapComponents = forwardRef<MapComponentsRef, MapComponentsProps>(
     }));
 
     return (
-      <Box sx={{ position: "relative" }}>
+      <Box sx={{ position: "relative", height: "100%" }}>
         <MapContainer
           // Initial center — set to fallback so the map always renders;
           // ChangeView will move it to the real position once available.
           center={FALLBACK_POSITION}
           zoom={13}
           scrollWheelZoom={false}
-          style={{ height: "400px", width: "100%", borderRadius: "10px" }}
+          style={{ height: "100%", width: "100%", borderRadius: "10px" }}
         >
           {/* Programmatically re-center map when coordinates change */}
           <ChangeView center={position} accuracy={accuracy} />
@@ -113,10 +112,6 @@ const MapComponents = forwardRef<MapComponentsRef, MapComponentsProps>(
             />
           )}
         </MapContainer>
-
-        <Box sx={{ mt: 3 }}>
-          <Chatbot />
-        </Box>
       </Box>
     );
   }

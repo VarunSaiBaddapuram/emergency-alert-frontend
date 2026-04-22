@@ -55,7 +55,7 @@ const NavBar: React.FC<DrawerAppBarProps> = (props) => {
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate(`/agency`);
+    navigate(`/`);
   };
 
   const { window } = props;
@@ -65,7 +65,11 @@ const NavBar: React.FC<DrawerAppBarProps> = (props) => {
     default: publicNavItems,
     reliefCenter: reliefOnlyItems,
     collectionCenter: collectionOnlyItems,
-    admin: [...publicNavItems, ...reliefOnlyItems, ...collectionOnlyItems],
+    admin: [
+      ...publicNavItems,
+      { name: "Relief Centers", link: "/agency/relief-center" },
+      { name: "Collection Centers", link: "/agency/collection-center" },
+    ],
   };
 
   let currentNavItems = publicNavItems;
@@ -134,7 +138,7 @@ const NavBar: React.FC<DrawerAppBarProps> = (props) => {
             ))}
             {!isAuthenticated ? (
               <Button component={Link} to="/agency" sx={{ color: "#fff" }}>
-                Agency Login
+                Login
               </Button>
             ) : (
               <Button onClick={handleLogout} sx={{ color: "#fff" }}>

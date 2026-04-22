@@ -20,9 +20,12 @@ import useGeolocation from "./hooks/useGeolocation";
 import axios from "axios";
 import { wmoCodeToDescription } from "./types/weather.types";
 import { sendSOS, SOSPayload } from "./api/sosService";
+import SmartToyIcon from "@mui/icons-material/SmartToy";
+import Chatbot from "./components/MapComponents/Chatbot";
 
 const Home: React.FC = () => {
   const [isSOSClicked, setIsSOSClicked] = useState<boolean>(false);
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
   const [sosLoading, setSosLoading] = useState<boolean>(false);
   const [sosSuccess, setSosSuccess] = useState<boolean>(false);
   const [sosError, setSosError] = useState<string | null>(null);
@@ -164,8 +167,8 @@ const Home: React.FC = () => {
       {/* ── Main content ────────────────────────────────────────────────── */}
       <Grid container spacing={3}>
         {/* Weather card */}
-        <Grid item xs={12} md={6}>
-          <Card elevation={4} sx={{ p: 2 }}>
+        <Grid item xs={12} md={6} sx={{ display: "flex" }}>
+          <Card elevation={4} sx={{ p: 2, display: "flex", flexDirection: "column", height: "450px", width: "100%", overflowY: "auto" }}>
             {geoLoading ? (
               <Box sx={{ p: 3, textAlign: "center" }}>
                 <CircularProgress size={24} />
@@ -180,8 +183,8 @@ const Home: React.FC = () => {
         </Grid>
 
         {/* Map card */}
-        <Grid item xs={12} md={6}>
-          <Card elevation={4} sx={{ p: 2 }}>
+        <Grid item xs={12} md={6} sx={{ display: "flex" }}>
+          <Card elevation={4} sx={{ p: 2, display: "flex", flexDirection: "column", height: "450px", width: "100%", overflow: "hidden" }}>
             <MapComponents
               ref={mapRef}
               isSOSClicked={isSOSClicked}
@@ -191,6 +194,42 @@ const Home: React.FC = () => {
           </Card>
         </Grid>
       </Grid>
+      
+      {/* ── Rescue Assistant (Chart) Floating Panel ─────────────────────── */}
+      {isChatOpen && (
+        <Box
+          sx={{
+            position: "fixed",
+            bottom: "110px",
+            right: "40px",
+            width: { xs: "300px", sm: "400px" },
+            zIndex: 1000,
+            boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
+            borderRadius: 2,
+            overflow: "hidden",
+          }}
+        >
+          <Chatbot />
+        </Box>
+      )}
+
+      {/* ── Rescue Assistant (Chart) Toggle Button ─────────────────────── */}
+      <Tooltip title={isChatOpen ? "Close Assistant" : "Open Rescue Assistant"} placement="left">
+        <Fab
+          color="primary"
+          onClick={() => setIsChatOpen(!isChatOpen)}
+          sx={{
+            position: "fixed",
+            bottom: "40px",
+            right: "40px",
+            width: 60,
+            height: 60,
+            zIndex: 1000,
+          }}
+        >
+          <SmartToyIcon />
+        </Fab>
+      </Tooltip>
     </Box>
   );
 };
