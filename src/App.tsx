@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "tailwindcss/tailwind.css";
 
+//for commiting.
 import Register from "./scenes/main/Register";
 import Login from "./scenes/main/Login";
 import AdminHome from "./scenes/admin/AdminHome";
@@ -33,47 +34,47 @@ const App: React.FC = () => {
         <Route path="/agency" element={<AgencyCheck />}>
           <Route index element={<Login />} />
           <Route path="register" element={<Register />} />
-          
+
           {/* Protected Agency Routes */}
-          <Route 
-            path="home" 
+          <Route
+            path="home"
             element={
               <ProtectedRoute roles={['admin']}>
                 <AdminHome />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="relief-center" 
+          <Route
+            path="relief-center"
             element={
               <ProtectedRoute roles={['reliefCenter', 'admin']}>
                 <ReliefCenter />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="my-relief-center" 
+          <Route
+            path="my-relief-center"
             element={
               <ProtectedRoute roles={['reliefCenter', 'admin']}>
                 <MyReliefCenter />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="collection-center" 
+          <Route
+            path="collection-center"
             element={
               <ProtectedRoute roles={['collectionCenter', 'admin']}>
                 <CollectionCenter />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="my-collection-center" 
+          <Route
+            path="my-collection-center"
             element={
               <ProtectedRoute roles={['collectionCenter', 'admin']}>
                 <MyCollectionCenter />
               </ProtectedRoute>
-            } 
+            }
           />
         </Route>
       </Routes>
