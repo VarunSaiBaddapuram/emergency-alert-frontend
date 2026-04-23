@@ -1,4 +1,4 @@
-import { createTheme, PaletteOptions } from "@mui/material/styles";
+import { createTheme } from "@mui/material/styles";
 
 // Extend the Palette and PaletteOptions interfaces to include custom colors
 declare module '@mui/material/styles' {
